@@ -164,19 +164,19 @@ class NutraciaAPITester:
             headers={'Authorization': f'Bearer {self.token}'}
         )
 
-    def test_chat_with_ai(self):
+    def test_chat_with_ai(self, message="What should I eat for breakfast to boost energy?"):
         """Test the AI chat functionality"""
         if not self.user_id:
             print("❌ Cannot test AI chat - No user ID")
             return False, None
             
         chat_data = {
-            "message": "What should I eat for breakfast to boost energy?",
+            "message": message,
             "user_id": self.user_id
         }
             
         return self.run_test(
-            "Chat with AI",
+            f"Chat with AI: '{message}'",
             "POST",
             "api/chat/ai",
             200,
