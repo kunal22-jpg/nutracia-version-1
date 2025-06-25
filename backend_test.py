@@ -242,16 +242,26 @@ class NutraciaAPITester:
         # Test cart sync
         self.test_cart_sync()
         
-        # Test AI chat (most important)
-        chat_success, chat_response = self.test_chat_with_ai()
+        # Test AI chat with multiple wellness questions
+        print("\n🤖 Testing AI Chat with Multiple Wellness Questions:")
+        print("-" * 50)
         
-        if chat_success and chat_response:
-            print("\n🤖 AI Response Preview:")
-            print("-" * 50)
-            response_text = chat_response.get('response', '')
-            preview = response_text[:200] + "..." if len(response_text) > 200 else response_text
-            print(preview)
-            print("-" * 50)
+        wellness_questions = [
+            "What should I eat for breakfast to boost energy?",
+            "Can you recommend a 5-minute morning skincare routine?",
+            "What exercises can I do at home for stress relief?"
+        ]
+        
+        for question in wellness_questions:
+            chat_success, chat_response = self.test_chat_with_ai(question)
+            
+            if chat_success and chat_response:
+                print(f"\n🤖 AI Response to: '{question}'")
+                print("-" * 50)
+                response_text = chat_response.get('response', '')
+                preview = response_text[:300] + "..." if len(response_text) > 300 else response_text
+                print(preview)
+                print("-" * 50)
         
         # Print results
         print("\n📊 Test Results:")
