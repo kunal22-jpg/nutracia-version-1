@@ -174,8 +174,10 @@ class NutraciaAPITester:
             "message": message,
             "user_id": self.user_id
         }
-            
-        return self.run_test(
+        
+        # Measure response time
+        start_time = time.time()
+        success, response = self.run_test(
             f"Chat with AI: '{message}'",
             "POST",
             "api/chat/ai",
@@ -183,6 +185,14 @@ class NutraciaAPITester:
             data=chat_data,
             headers={'Authorization': f'Bearer {self.token}'}
         )
+        end_time = time.time()
+        
+        if success and response:
+            response_time = end_time - start_time
+            response['response_time'] = round(response_time, 2)
+            print(f"⏱️ Response time: {response_time:.2f} seconds")
+            
+        return success, response
 
     def test_cart_sync(self):
         """Test cart synchronization"""
