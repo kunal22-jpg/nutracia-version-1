@@ -388,7 +388,15 @@ class NutraciaAPITester:
 if __name__ == "__main__":
     # Get the backend URL from environment or use default
     import os
-    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8001")
+    
+    # Use the same backend URL that the frontend uses
+    with open('/app/frontend/.env', 'r') as f:
+        for line in f:
+            if line.startswith('REACT_APP_BACKEND_URL='):
+                backend_url = line.strip().split('=', 1)[1]
+                break
+        else:
+            backend_url = "http://localhost:8001"
     
     print(f"Using backend URL: {backend_url}")
     
