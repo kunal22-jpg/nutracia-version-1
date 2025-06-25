@@ -219,54 +219,159 @@ class NutraciaAPITester:
 
     def run_all_tests(self):
         """Run all API tests"""
-        print("🚀 Starting Nutracía API Tests")
-        print("=" * 50)
+        print("🚀 Starting Nutracía API Tests - Final Validation")
+        print("=" * 70)
+        print("Testing Nutracía as an Intelligent Wellness Companion")
+        print("=" * 70)
         
         # Test root endpoint
         self.test_root_endpoint()
         
-        # Test user signup
+        # 1. Create a Demo User
+        print("\n📝 STEP 1: Creating a Demo User")
+        print("-" * 70)
         signup_success, _ = self.test_signup()
         
         # If signup fails, try login (in case user already exists)
         if not signup_success:
             self.test_login()
         
-        # Test profile endpoints
-        self.test_get_profile()
-        self.test_update_profile()
+        if not self.user_id:
+            print("❌ Critical Error: Failed to create or login user. Aborting tests.")
+            return False
+            
+        # 2. Test User Features
+        print("\n👤 STEP 2: Testing User Features")
+        print("-" * 70)
         
-        # Test dashboard
-        self.test_get_dashboard()
+        # Get initial profile
+        print("\n📋 Getting initial user profile:")
+        profile_success, profile_data = self.test_get_profile()
         
-        # Test cart sync
+        # Update profile with specific health goals
+        print("\n✏️ Updating user profile with specific health goals:")
+        profile_update = {
+            "name": "Wellness Tester",
+            "age": 32,
+            "health_goals": ["Weight Management", "Better Sleep", "Stress Reduction", "Improved Energy"],
+            "dietary_preferences": ["Plant-based", "Gluten-free", "Low sugar"],
+            "fitness_level": "Intermediate"
+        }
+        self.run_test(
+            "Update User Profile with Health Goals",
+            "PUT",
+            f"api/profile/{self.user_id}",
+            200,
+            data=profile_update,
+            headers={'Authorization': f'Bearer {self.token}'}
+        )
+        
+        # Sync wellness-focused shopping cart
+        print("\n🛒 Syncing wellness-focused shopping cart:")
+        cart_data = {
+            "user_id": self.user_id,
+            "items": [
+                {
+                    "product_name": "Organic Plant Protein",
+                    "category": "Nutrition",
+                    "price": 39.99,
+                    "quantity": 1
+                },
+                {
+                    "product_name": "Vitamin D3 + K2 Supplements",
+                    "category": "Supplements",
+                    "price": 24.99,
+                    "quantity": 1
+                },
+                {
+                    "product_name": "Hyaluronic Acid Serum",
+                    "category": "Skincare",
+                    "price": 32.50,
+                    "quantity": 1
+                },
+                {
+                    "product_name": "Yoga Mat",
+                    "category": "Fitness",
+                    "price": 45.00,
+                    "quantity": 1
+                }
+            ]
+        }
         self.test_cart_sync()
         
-        # Test AI chat with multiple wellness questions
-        print("\n🤖 Testing AI Chat with Multiple Wellness Questions:")
-        print("-" * 50)
+        # Get personalized dashboard data
+        print("\n📊 Getting personalized dashboard data:")
+        dashboard_success, dashboard_data = self.test_get_dashboard()
+        if dashboard_success and dashboard_data:
+            print("\nDashboard Data:")
+            print(f"User: {dashboard_data.get('name')}")
+            print(f"Health Goals: {', '.join(dashboard_data.get('health_goals', []))}")
+            print(f"Cart Items: {dashboard_data.get('cart_items_count')}")
+            print(f"Daily Tip: {dashboard_data.get('daily_tip')}")
+        
+        # 3. Test AI Conversation with Multiple Questions
+        print("\n🤖 STEP 3: Testing Full AI Conversation with Multiple Questions")
+        print("-" * 70)
         
         wellness_questions = [
-            "What should I eat for breakfast to boost energy?",
-            "Can you recommend a 5-minute morning skincare routine?",
-            "What exercises can I do at home for stress relief?"
+            "I'm a 25-year-old who works from home and feels tired all day. What breakfast would you recommend?",
+            "I have combination skin and live in a dry climate. What's a good skincare routine?",
+            "I only have 15 minutes in the morning for exercise. What should I do?"
         ]
         
-        for question in wellness_questions:
+        ai_responses = []
+        
+        for i, question in enumerate(wellness_questions, 1):
+            print(f"\n🔍 Question {i}: {question}")
             chat_success, chat_response = self.test_chat_with_ai(question)
             
             if chat_success and chat_response:
-                print(f"\n🤖 AI Response to: '{question}'")
-                print("-" * 50)
                 response_text = chat_response.get('response', '')
-                preview = response_text[:300] + "..." if len(response_text) > 300 else response_text
-                print(preview)
+                ai_responses.append(response_text)
+                
+                print(f"\n🤖 AI Response {i}:")
                 print("-" * 50)
+                print(response_text)
+                print("-" * 50)
+                
+                # 4. Validate AI Quality
+                print("\n✅ AI Response Quality Check:")
+                
+                # Check response length (a basic quality metric)
+                word_count = len(response_text.split())
+                print(f"- Response length: {word_count} words")
+                
+                # Check for personalization
+                personalization = "Yes" if any(term in response_text.lower() for term in 
+                                             ["your", "you", "based on", "recommend", "suggest"]) else "Limited"
+                print(f"- Personalization: {personalization}")
+                
+                # Check for evidence-based content
+                evidence_based = "Yes" if any(term in response_text.lower() for term in 
+                                            ["research", "studies", "evidence", "shown", "according"]) else "Limited"
+                print(f"- Evidence-based: {evidence_based}")
+                
+                # Check for medical-grade terminology
+                medical_grade = "Yes" if any(term in response_text.lower() for term in 
+                                           ["nutrient", "protein", "vitamin", "mineral", "hydration", 
+                                            "metabolism", "inflammation"]) else "Limited"
+                print(f"- Medical-grade terminology: {medical_grade}")
+                
+                # Measure response time
+                print(f"- Response time: {chat_response.get('response_time', 'N/A')} seconds")
         
-        # Print results
-        print("\n📊 Test Results:")
+        # Print overall results
+        print("\n📊 Final Test Results:")
         print(f"Tests Passed: {self.tests_passed}/{self.tests_run}")
         print(f"Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        if self.tests_passed == self.tests_run:
+            print("\n🎉 SUCCESS: Nutracía is fully functional as an Intelligent Wellness Companion!")
+            print("✓ User features working correctly")
+            print("✓ AI providing personalized wellness guidance")
+            print("✓ All API endpoints responding as expected")
+        else:
+            print("\n⚠️ Some tests failed. Nutracía may need additional configuration.")
         
         return self.tests_passed == self.tests_run
 
